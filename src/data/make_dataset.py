@@ -3,6 +3,7 @@ import click
 import logging
 from pathlib import Path
 import pandas as pd
+import yaml
 from sklearn.model_selection import train_test_split
 
 # Set up logging configuration
@@ -17,9 +18,9 @@ logger.addHandler(file_handler)
 logger.info('Basic cleaning and Splitting into train test data from the whole data')
 
 # Class for creating train and test datasets
-class train_test_creation:
+class TrainTestCreation:
 
-    def __init__(self, read_path, write_path, test_per, seed):
+    def __init__(self, read_path, test_per, seed, write_path=None):
         # Initialize class variables with provided parameters
         self.read_path = read_path 
         self.write_path = write_path 
@@ -29,7 +30,7 @@ class train_test_creation:
         # Log information about the parameters passed to the class
         logger.info(f'Call to make_dataset with the parameters: Data Read Path: {self.read_path}, Data write path: {self.write_path}, Test Percentage: {self.test_per}, and seed value: {self.seed}')
         
-    def read_data(self, path):
+    def read_data(self):
         '''This function reads data from input path and stores it into a dataframe'''
         try:
             # Read data from the provided CSV file
@@ -64,7 +65,7 @@ class train_test_creation:
         '''This function removes the outlier from the data based on upper and lower threshold provided'''
 
         try:
-            self.df = self.df[(self.df['trip_duration']>=self.upper_threshold) & (self.df['trip_duration']<=self.lower_threshold)]
+            self.df = self.df[(self.df['trip_duration']>=10) & (self.df['trip_duration']<=200)]
             self.df = self.df.loc[(self.df['pickup_latitude'] >= 40.637044) & (self.df['pickup_latitude'] <= 40.855256)]
             self.df = self.df.loc[(self.df['pickup_longitude'] >= -74.035735) & (self.df['pickup_longitude'] <= -73.770272)]
             self.df = self.df.loc[(self.df['dropoff_latitude'] >= 40.637044) & (self.df['dropoff_latitude'] <= 40.855256)]
@@ -84,7 +85,7 @@ class train_test_creation:
 
         try:
             # Split the data into training and testing sets
-            self.train_data, self.test_data = train_test_split(self.df, test_per=self.test_per, random_state=self.seed)
+            self.train_data, self.test_data = train_test_split(self.df, random_state=self.seed,test_size=self.test_per)
         except Exception as e:
             # Log if splitting fails
             logger.info(f'Splitting failed with error: {e}')
@@ -95,11 +96,10 @@ class train_test_creation:
     def write_data(self):
 
         '''This function writes the data into destination folder'''
-
         try:
             # Write the training and testing sets to CSV files
-            self.train_data.to_csv(self.write_path + '/train_data.csv')
-            self.test_data.to_csv(self.write_path + '/test_data.csv')
+            self.train_data.to_csv(Path(str(self.write_path) + '/train_data.csv'),index=False)
+            self.test_data.to_csv(Path(str(self.write_path) + '/test_data.csv'),index=False)
         except Exception as e:
             # Log if writing fails
             logger.info(f'Writing data failed with error: {e}')
@@ -111,15 +111,18 @@ class train_test_creation:
         self.read_data()
         self.date_type_conversion()
         self.outlier_removal()
-        self.write_data()
+        self.split_traintest()
+        if self.write_path !=None:
+            self.write_data()
+
+        return (self.train_data, self.test_data)
 
 # Command-line interface using Click
 @click.command()
 @click.argument('input_filepath', type=click.Path())
 @click.argument('output_filepath', type=click.Path())
-@click.argument('split_percent', type=click.FLOAT)
-@click.argument('seed', type=click.INT)
-def main(input_filepath, output_filepath, split_percent, seed):
+def main(input_filepath, output_filepath):
+
     """ Runs data cleaning and splitting script to turn raw data from (../raw) into
         cleaned data ready to be analyzed (saved in ../interim).
     """
@@ -129,14 +132,18 @@ def main(input_filepath, output_filepath, split_percent, seed):
     data_dir = Path(home_dir.as_posix() + '/data')
     input_path = Path(data_dir.as_posix() + input_filepath)
     output_path = Path(data_dir.as_posix() + output_filepath)
-
+    params_path = Path(home_dir.as_posix()+'/params.yaml')
+    params=yaml.safe_load(open(params_path))['make_dataset']
+    
     # Create an instance of the train_test_creation class
-    split_data = train_test_creation(input_path, output_path, split_percent, seed)
+    if output_filepath != 'None':
+        split_data = TrainTestCreation(input_path, params['test_per'], params['seed'], output_path)
+
+    else:
+        split_data = TrainTestCreation(input_path, params['test_per'], params['seed'])
     
     # Perform the steps of reading, splitting, and writing data
-    split_data.read_data()
-    split_data.split_traintest()
-    split_data.write_data()
+    split_data.fit()
 
 # Execute the main function if the script is run
 if __name__ == '__main__':
