@@ -7,89 +7,128 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, m
 import yaml
 from dvclive import Live
 import matplotlib.pyplot as plt
+import os
+from src.models.train_model import model_eval
+from jinja2 import Template
 
-class ModelEvaluation:
+#class for building features from dataset
+class VisualizeScores:
+    def __init__(self, trainpath, testpath, modelpath, feat,output_path, reportfig_path,home_dir):
 
-    def __init__(self, x,y,model,params,split, output_path):
-        self.x = x
-        self.y = y 
-        self.model = model
-        self.params = params
-        self.split = split
+        self.trainpath = trainpath
+        self.testpath = testpath 
+        self.modelpath = modelpath
+        self.features = feat
+        self.reportfig_path = reportfig_path
         self.output_path = output_path
+        self.home_dir = home_dir
+
+    def read_data(self):
+        self.df_train = pd.read_csv(self.trainpath)
+        self.df_test = pd.read_csv(self.testpath)
     
+    def feature(self):
 
-    def model_scores(self):
+        self.df_train= self.df_train[self.features]
+        self.df_test = self.df_test[self.features]
+        self.x_train = self.df_train.drop(columns=['trip_duration'])
+        self.y_train = self.df_train['trip_duration']
+        self.x_test = self.df_test.drop(columns= ['trip_duration'])
+        self.y_test = self.df_test['trip_duration']
 
-        self.y_pred = self.model.predict(self.x)    
+    def predict(self):
+        self.metrics_dict ={'Model':[], 'Train_RMSE':[], 'Train_RMSPE':[], 'Train_MAE':[] , 'Train_R2SCORE':[],
+                            'Test_RMSE':[], 'Test_RMSPE':[], 'Test_MAE':[] , 'Test_R2SCORE':[]}
+        for filename in os.listdir(self.modelpath):
+            filepath = os.path.join(self.modelpath, filename)
+            model = pickle.load(open(filepath, 'rb'))
+            train_score = model_eval(model,self.x_train, self.y_train)
+            test_score = model_eval(model,self.x_test, self.y_test)
 
-          #mean_square_error
-        self.mse = round(mean_squared_error(self.y,self.y_pred),2)
-        
-        #root mean square error
-        self.rmse = round(np.sqrt(mean_squared_error(self.y,self.y_pred)),2)
-        
-        #mean absolute error
-        self.mae = round(mean_absolute_error(self.y,self.y_pred),2)
-        
-        #root mean square percentage error
-        self.rmspe = round(np.sqrt(np.sum(np.power(((self.y-self.y_pred)/self.y),2))/len(self.y)),3)
-        
-        #r2_score
-        self.r2 = round(r2_score(self.y,self.y_pred),2)
-        
-        #adjusted_r2_score
-        self.adjr2 = round(1-(1-r2_score(self.y,self.y_pred))*((self.x.shape[0]-1)/(self.x.shape[0]-self.x.shape[1]-1)),2)
-        
-        #dictionary storing all these testing score and this will be the returning value of function
-        self.score_dict = {'Mean Square Error':self.mse, 'Root Mean Square Error':self.rmse,
-                        'Mean Absolute Error':self.mae,'Root Mean Square Percentage Error':self.rmspe,'R2 Score':self.r2,
-                        'Adjusted R2 Score': self.adjr2 }
-        
-        return self.score_dict
+            self.metrics_dict['Model'].append(filename.split('_')[0])
+            
+            self.metrics_dict['Train_RMSE'] = train_score['Root Mean Square Error']
+            self.metrics_dict['Train_RMSPE'] = train_score['Root Mean Square Percentage Error']
+            self.metrics_dict['Train_MAE'] = train_score['Mean Absolute Error']
+            self.metrics_dict['Train_R2SCORE'] = train_score['R2 Score']
 
-    def livelog(self, live):
+            self.metrics_dict['Test_RMSE'] = test_score['Root Mean Square Error']
+            self.metrics_dict['Test_RMSPE'] = test_score['Root Mean Square Percentage Error']
+            self.metrics_dict['Test_MAE'] = test_score['Mean Absolute Error']
+            self.metrics_dict['Test_R2SCORE'] = test_score['R2 Score']
+
+            
+    def visualise_metrics(self):
+
+        self.metrics_df = pd.DataFrame(self.metrics_dict)
+        self.metrics_df.set_index('Model', inplace=True)
+
+        ax1 = self.metrics_df[['Train_RMSE', 'Test_RMSE']].plot.bar(title= 'Different models train and test RMSE')
+        fig1 = ax1.get_figure()
+        fig1.savefig(Path(str(self.reportfig_path) + '\scoring_metrices\Different models train and test RMSE.png'))
+
+        ax2 = self.metrics_df[['Train_RMSPE', 'Test_RMSPE']].plot.bar(title= 'Different models train and test RMSPE')
+        fig2 = ax2.get_figure()
+        fig2.savefig(Path(str(self.reportfig_path) + '\scoring_metrices\Different models train and test RMSPE.png'))
+
+        ax3 = self.metrics_df[['Train_MAE', 'Test_MAE']].plot.bar(title= 'Different models train and test MAE')
+        fig3 = ax3.get_figure()
+        fig3.savefig(Path(str(self.reportfig_path) + '\scoring_metrices\Different models train and test MAE.png'))
+
+        ax4 = self.metrics_df[['Train_R2SCORE', 'Test_R2SCORE']].plot.bar(title= 'Different models train and test R2_SCORE')
+        fig4 = ax4.get_figure()
+        fig4.savefig(Path(str(self.reportfig_path) + '\scoring_metrices\Different models train and test R2_SCORE.png'))
+
+    def report_generator(self):
         
-        model_score = self.model_scores()
-        live.log_param("Model", self.params['train_model']['model'])
-        live.log_param("Model Hyperparametrs", self.params['train_model']['hyperparameters'])
-        live.log_param('Features used in modelling', self.params['train_model']['features'])
-        live.log_metric(f'{self.split} data/RMSE',model_score['Root Mean Square Error'])
-        live.log_metric(f'{self.split} data/RMSPE',model_score['Root Mean Square Percentage Error'])
-        live.log_metric(f'{self.split} data/MAE',model_score['Mean Absolute Error'])
-        live.log_metric(f'{self.split} data/R2_SCORE',model_score['R2 Score'])
-        fig = self.save_importance_plot()
-        live.log_image(
-            'Taxi Trip feature importances.png',fig
-        )
-        live.make_report()
-   
-    def save_importance_plot(self):
+        # Get a list of image files in the folder
+        image_folder = Path(str(self.reportfig_path) + '\scoring_metrices')
+        image_files = [file for file in os.listdir(image_folder) if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+
+        # Create an HTML template
+        template_str = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <title>Report for different models</title>
+        </head>
+        <body>
+            <h1>Comparative charts for Different scoring metrics of the models</h1>
+            {% for image_file in image_files %}
+                <div>
+                    <img src="{{ image_folder }}\{{ image_file }}" alt="{{ image_file }}">
+                    <br>
+                </div>
+            {% endfor %}
+        </body>
+        </html>
         """
-        Save feature importance plot.
+        template = Template(template_str)
 
-        Args:
-            live (dvclive.Live): DVCLive instance.
-            model (sklearn.ensemble.RandomForestClassifier): Trained classifier.
-            feature_names (list): List of feature names.
-        """
-        fig, axes = plt.subplots(dpi=100)
-        axes.set_ylabel("Feature importance")
+        # Render HTML content
+        html_content = template.render(image_folder=image_folder, image_files=image_files)
 
-        importances = self.model.named_steps['regressor'].feature_importances_
-        feature_names = self.model.named_steps['preprocess'].get_feature_names_out()
-        forest_importances = pd.Series(importances, index=feature_names)
-        forest_importances.plot.barh(ax=axes)
+        # Save HTML content to a file
+        report = Path(str(self.home_dir) + '/reports/metrics_report.html')
+        
+        with open(report, "w") as html_file:
+            html_file.write(html_content)
 
-        return fig
-
+    def metrics_tracker(self):
+        self.read_data()
+        self.feature()
+        self.predict()
+        self.visualise_metrics()
+        self.report_generator()
 
         
 @click.command()
 @click.argument('train_input_filepath', type=click.Path())
 @click.argument('test_input_filepath', type=click.Path())
 @click.argument('model_path', type=click.Path())
-def main(train_input_filepath,test_input_filepath, model_path):
+@click.argument('fig_path', type=click.Path())
+def main(train_input_filepath,test_input_filepath, model_path,fig_path):
 
     """ Runs data cleaning and splitting script to turn raw data from (../raw) into
         cleaned data ready to be analyzed (saved in ../interim).
@@ -101,25 +140,17 @@ def main(train_input_filepath,test_input_filepath, model_path):
     output_path = home_dir.as_posix() + '/dvclive'
     train_input_path = Path(data_dir.as_posix() + train_input_filepath)
     test_input_path = Path(data_dir.as_posix() + test_input_filepath)
-    model = pickle.load(open(Path(home_dir.as_posix() + model_path), 'rb'))
-    params_path = Path(home_dir.as_posix() + '/params.yaml')
-    params = yaml.safe_load(open(params_path))
+    model_path  = Path(home_dir.as_posix() + model_path)
+    reportfig_path = Path(home_dir.as_posix() + fig_path)
+    params_path = Path(home_dir.as_posix()+'/params.yaml')
+
+    #loading parameters of train model from params.yaml file 
+    model_params=yaml.safe_load(open(params_path))['train_model']
+    features = model_params['features']
     
-    df_train = pd.read_csv(train_input_path)
-    x_train = df_train.drop(columns=['trip_duration'])
-    y_train =df_train['trip_duration']
+    mtrcs = VisualizeScores(train_input_path, test_input_path, model_path, features,output_path, reportfig_path,home_dir)
 
-    df_test = pd.read_csv(test_input_path)
-    x_test = df_test.drop(columns=['trip_duration'])
-    y_test =df_test['trip_duration']
-
-
-    train_model_score = ModelEvaluation( x_train, y_train, model,params,'train',output_path)
-    test_model_score  = ModelEvaluation( x_test, y_test, model,params, 'test', output_path)
-
-    with Live(output_path, save_dvc_exp=True) as live:
-        train_model_score.livelog(live)
-        test_model_score.livelog(live)
+    mtrcs.metrics_tracker()
     
 if __name__== "__main__":
     main()
