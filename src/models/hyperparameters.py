@@ -22,7 +22,7 @@ hyperparameters = {
                 'max_depth': hp.choice('max_depth', [8,10,15,20,30,40 ]), 
                 'max_features': hp.choice('max_features', ['sqrt', 'log2', None]),
                 'min_samples_split': scope.int(hp.uniform('min_Samples_split',200,400)),
-                'max_sample': hp.uniform('max_sample',0.4,0.8)
+                'max_samples': hp.uniform('max_sample',0.4,0.8)
            },
     'GradientBoost':
             {

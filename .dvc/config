@@ -1,4 +1,0 @@
-[core]
-    remote = dvcrem
-['remote "dvcrem"']
-    url = C:\Users\Aman Gupta\test\rem_dvc\nyc_remote

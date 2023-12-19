@@ -310,10 +310,6 @@ def main(traininput_filepath, testinput_filepath,hypparam_filepath ):
     #dvclive for loggging experiments
     output_path = home_dir.as_posix() + '/dvclive'
 
-    #loading pickle files of hyperparameters
-    hypparam_path = Path(home_dir.as_posix() + hypparam_filepath)
-    hyperparams = pickle.load(open(hypparam_path, 'rb'))[model]
-    
     #loading parameters of train model from params.yaml file 
     params_path = Path(home_dir.as_posix()+'/params.yaml')
     model_params=yaml.safe_load(open(params_path))['train_model']
@@ -321,7 +317,11 @@ def main(traininput_filepath, testinput_filepath,hypparam_filepath ):
     features = model_params['features']
     ohe = model_params['ohe_features']
     seed = model_params['seed']
-
+    
+    #loading pickle files of hyperparameters
+    hypparam_path = Path(home_dir.as_posix() + hypparam_filepath)
+    hyperparams = pickle.load(open(hypparam_path, 'rb'))[model]
+    
     #initating a object from TrainModel class
     trf = TrainModel(traininput_path, testinput_path,model, features, ohe, seed,hyperparams, output_path, home_dir)
 
