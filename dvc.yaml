@@ -1,0 +1,60 @@
+stages:
+  make_dataset:
+    cmd: python .\src\data\make_dataset.py \raw\creditcard.csv \interim\
+    deps:
+    - .\data\raw\creditcard.csv
+    - .\src\data\make_dataset.py
+    params:
+    - make_dataset.test_split
+    - make_dataset.seed
+    - make_dataset.pickup_latitude_lowlimit
+    - make_dataset.pickup_latitude_uplimit
+    - make_dataset.pickup_longitude_lowlimit 
+    - make_dataset.pickup_longitude_uplimit
+    - make_dataset.dropoff_latitude_lowlimit
+    - make_dataset.dropoff_latitude_uplimit
+    - make_dataset.dropoff_longitude_lowlimit
+    - make_dataset.dropoff_longitude_uplimit
+
+  traindata_build_features_train:
+    cmd: python .\src\features\build_features.py \interim\train_data.csv \processed\
+    deps:
+    - .\data\interim\
+    - .\src\features\build_features.py
+    params:
+    - build_features.K
+    - build_features.seed
+
+  testdata_build_features:
+    cmd: python .\src\features\build_features.py \interim\test_data.csv \processed\
+    deps:
+    - .\data\interim\
+    - .\src\features\build_features.py
+
+  hyperparameter_packaging: 
+    cmd: python .\src\models\hyperparameters.py
+    deps:
+    - .\src\models\hyperparameters.py
+
+  train_model:
+    cmd: python .\src\models\train_model.py \processed\train_data.csv \processed\test_data.csv \models\hyperparameters.pkl
+    deps:
+    - .\data\processed\
+    - .\src\models\train_model.py
+    - .\models\
+    params:
+    - train_model.model
+    - train_model.features
+    - train_model.ohe_features
+    - train_model.seed
+    outs:
+    - dvclive
+  
+  visualize:
+    cmd: python .\src\visualization\visualize.py \processed\train_data.csv \processed\test_data.csv \models\trained_models\ \reports\figures\
+    deps:
+    - .\data\processed\
+    - .\models\trained_models\
+    - .\reports\figures\
+    - .\src\visualization\visualize.py
+    

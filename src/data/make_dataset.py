@@ -5,30 +5,33 @@ from pathlib import Path
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
-
-# Set up logging configuration
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
-file_handler = logging.FileHandler('make_dataset.log')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+from src.logger import infologger
 
 # Log information about the script starting
-logger.info('Basic cleaning and Splitting into train test data from the whole data')
+infologger.info('Basic cleaning and Splitting into train test data from the whole data')
 
 # Class for creating train and test datasets
 class TrainTestCreation:
 
-    def __init__(self, read_path, test_per, seed, write_path=None):
+    def __init__(self, read_path, params, write_path=None):
         # Initialize class variables with provided parameters
         self.read_path = read_path 
         self.write_path = write_path 
-        self.test_per = test_per
-        self.seed = seed
+        self.test_per = params['test_per']
+        self.seed = params['seed']
+        self.trip_duration_lowlimit = params['trip_duration_lowlimit']
+        self.trip_duration_uplimit = params['trip_duration_uplimit']
+        self.pickup_latitude_lowlimit = params['pickup_latitude_lowlimit']
+        self.pickup_latitude_uplimit = params['pickup_latitude_uplimit']
+        self.dropoff_latitude_lowlimit = params['dropoff_latitude_lowlimit']
+        self.dropoff_latitude_uplimit = params['dropoff_latitude_uplimit']
+        self.pickup_longitude_lowlimit = params['pickup_longitude_lowlimit']
+        self.pickup_longitude_uplimit = params['pickup_longitude_uplimit']
+        self.dropoff_longitude_lowlimit = params['dropoff_longitude_lowlimit']
+        self.dropoff_longitude_uplimit = params['dropoff_longitude_uplimit']
 
         # Log information about the parameters passed to the class
-        logger.info(f'Call to make_dataset with the parameters: Data Read Path: {self.read_path}, Data write path: {self.write_path}, Test Percentage: {self.test_per}, and seed value: {self.seed}')
+        infologger.info(f'Call to make_dataset with the parameters: Data Read Path: {self.read_path}, Data write path: {self.write_path}, Test Percentage: {self.test_per}, and seed value: {self.seed}')
         
     def read_data(self):
         '''This function reads data from input path and stores it into a dataframe'''
@@ -37,10 +40,10 @@ class TrainTestCreation:
             self.df = pd.read_csv(self.read_path)
         except Exception as e:
             # Log if reading fails
-            logger.info(f'Reading failed with error: {e}')
+            infologger.info(f'Reading failed with error: {e}')
         else:
             # Log if reading is successful
-            logger.info('Read performed successfully')
+            infologger.info('Read performed successfully')
 
     def date_type_conversion(self):
         '''This function reads all the date columns in data from object datatype to datetime datatype'''
@@ -54,18 +57,18 @@ class TrainTestCreation:
 
         except Exception as e:
             # Log if object into date conversion fails
-            logger.info(f'Date conversion of columns has failed with error : {e}')
+            infologger.info(f'Date conversion of columns has failed with error : {e}')
 
         else:
             # Log if object into datetime conversion is successful
-            logger.info('Date conversion performed successfully')
+            infologger.info('Date conversion performed successfully')
 
 
     def outlier_removal(self):
         '''This function removes the outlier from the data based on upper and lower threshold provided'''
 
         try:
-            self.df = self.df[(self.df['trip_duration']>=10) & (self.df['trip_duration']<=200)]
+            self.df = self.df[(self.df['trip_duration']>=10) & (self.df['trip_duration']<=30000)]
             self.df = self.df.loc[(self.df['pickup_latitude'] >= 40.637044) & (self.df['pickup_latitude'] <= 40.855256)]
             self.df = self.df.loc[(self.df['pickup_longitude'] >= -74.035735) & (self.df['pickup_longitude'] <= -73.770272)]
             self.df = self.df.loc[(self.df['dropoff_latitude'] >= 40.637044) & (self.df['dropoff_latitude'] <= 40.855256)]
@@ -73,11 +76,11 @@ class TrainTestCreation:
 
         except Exception as e:
             #log if outlier removal is failed
-            logger.info(f'Outlier removal for data has failed with error : {e}')
+            infologger.info(f'Outlier removal for data has failed with error : {e}')
 
         else:
             #log if outlier removal is successful
-            logger.info(f'Outlier removal performed successfully')
+            infologger.info(f'Outlier removal performed successfully')
 
     def split_traintest(self):
 
@@ -88,10 +91,10 @@ class TrainTestCreation:
             self.train_data, self.test_data = train_test_split(self.df, random_state=self.seed,test_size=self.test_per)
         except Exception as e:
             # Log if splitting fails
-            logger.info(f'Splitting failed with error: {e}')
+            infologger.info(f'Splitting failed with error: {e}')
         else:
             # Log if splitting is successful
-            logger.info('Split performed successfully')
+            infologger.info('Split performed successfully')
 
     def write_data(self):
 
@@ -102,10 +105,10 @@ class TrainTestCreation:
             self.test_data.to_csv(Path(str(self.write_path) + '/test_data.csv'),index=False)
         except Exception as e:
             # Log if writing fails
-            logger.info(f'Writing data failed with error: {e}')
+            infologger.info(f'Writing data failed with error: {e}')
         else:
             # Log if writing is successful
-            logger.info('Write performed successfully')
+            infologger.info('Write performed successfully')
 
     def fit(self):
         self.read_data()
@@ -137,10 +140,10 @@ def main(input_filepath, output_filepath):
     
     # Create an instance of the train_test_creation class
     if output_filepath != 'None':
-        split_data = TrainTestCreation(input_path, params['test_per'], params['seed'], output_path)
+        split_data = TrainTestCreation(input_path, params, output_path)
 
     else:
-        split_data = TrainTestCreation(input_path, params['test_per'], params['seed'])
+        split_data = TrainTestCreation(input_path, params)
     
     # Perform the steps of reading, splitting, and writing data
     split_data.fit()

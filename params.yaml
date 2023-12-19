@@ -1,6 +1,16 @@
 make_dataset:
   test_per: 0.3
   seed: 24
+  trip_duration_lowlimit: 10
+  trip_duration_uplimit: 30000
+  pickup_latitude_lowlimit: 40.637044
+  pickup_latitude_uplimit: 40.855256
+  pickup_longitude_lowlimit: -74.035735 
+  pickup_longitude_uplimit: -73.770272
+  dropoff_latitude_lowlimit: 40.637044
+  dropoff_latitude_uplimit: 40.855256
+  dropoff_longitude_lowlimit: -74.035735
+  dropoff_longitude_uplimit: -73.770272
 
 build_features:
   K: 5
@@ -12,9 +22,7 @@ train_model:
           'pickup_weekday', 'pickup_hour', 'store_and_fwd_flag', 'pickup_cluster_label', 'dropoff_cluster_label'
           ,'trip_distance', 'day_phase', 'trip_duration']
   ohe_features: ['vendor_id','pickup_weekday','day_phase', 'store_and_fwd_flag']
-  hyperparameters:
-    max_depth: 10
-    n_estimators: 20
+  seed: 26
     
 
 
