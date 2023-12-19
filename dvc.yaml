@@ -2,10 +2,10 @@ stages:
   make_dataset:
     cmd: python .\src\data\make_dataset.py \raw\creditcard.csv \interim\
     deps:
-    - .\data\raw\creditcard.csv
+    - .\data\raw\train.csv
     - .\src\data\make_dataset.py
     params:
-    - make_dataset.test_split
+    - make_dataset.test_per
     - make_dataset.seed
     - make_dataset.pickup_latitude_lowlimit
     - make_dataset.pickup_latitude_uplimit
