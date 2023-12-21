@@ -110,6 +110,17 @@ class VisualizeScores:
         self.metrics_df = pd.DataFrame(self.metrics_dict)
         self.metrics_df.set_index('Model', inplace=True)
 
+        #storing best model in best model dir
+        model_idx = self.metrics_df[['Test_RMSE']].idxmin()[0]
+
+        #extracting and loading each model one by one
+        for filename in os.listdir(self.modelpath):
+            if model_idx in filename:
+                filepath = os.path.join(self.modelpath, filename)
+                model = pickle.load(open(filepath, 'rb'))
+                wpath = Path(str(self.home_dir) + '/models/bestmodel.pkl')
+                pickle.dump(model,open(wpath,'wb'))
+
         # Plot and save bar charts for different scoring metrics
         ax1 = self.metrics_df[['Train_RMSE', 'Test_RMSE']].plot.bar(title='Different models train and test RMSE')
         fig1 = ax1.get_figure()

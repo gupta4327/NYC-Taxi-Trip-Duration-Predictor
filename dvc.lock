@@ -28,13 +28,13 @@ stages:
     deps:
     - path: .\data\interim\
       hash: md5
-      md5: 4a4208836004ee99b5b8b75b9ed809fb.dir
-      size: 193972832
-      nfiles: 3
+      md5: df06dc77d97fe2cb87c8a2b34b6433a4.dir
+      size: 58191523
+      nfiles: 2
     - path: .\src\features\build_features.py
       hash: md5
-      md5: 01c6dd38dd4d08d48caa539d0462d666
-      size: 10156
+      md5: f2f28f2a7378dbf09308650a05cb2510
+      size: 10201
     params:
       params.yaml:
         build_features.K: 5
@@ -44,13 +44,13 @@ stages:
     deps:
     - path: .\data\interim\
       hash: md5
-      md5: 4a4208836004ee99b5b8b75b9ed809fb.dir
-      size: 193972832
-      nfiles: 3
+      md5: df06dc77d97fe2cb87c8a2b34b6433a4.dir
+      size: 58191523
+      nfiles: 2
     - path: .\src\features\build_features.py
       hash: md5
-      md5: 01c6dd38dd4d08d48caa539d0462d666
-      size: 10156
+      md5: f2f28f2a7378dbf09308650a05cb2510
+      size: 10201
   hyperparameter_packaging:
     cmd: python .\src\models\hyperparameters.py
     deps:
@@ -64,18 +64,18 @@ stages:
     deps:
     - path: .\data\processed\
       hash: md5
-      md5: 15dc05e8eaad92d7710b4d20e988fa64.dir
+      md5: 7155b22db623226c51646d9b12ef3516.dir
       size: 502873708
       nfiles: 5
     - path: .\models\
       hash: md5
-      md5: 541d08b332474feda77fdd72896e7f3b.dir
-      size: 33885219
-      nfiles: 5
+      md5: 0c6335f9011898cff9be10ee37849ee8.dir
+      size: 45136920
+      nfiles: 6
     - path: .\src\models\train_model.py
       hash: md5
-      md5: 61658735499c1ada303b0c049fea579d
-      size: 13071
+      md5: 59c48ec664e530dde61c5995f10687fb
+      size: 13072
     params:
       params.yaml:
         train_model.features:
@@ -102,8 +102,8 @@ stages:
     outs:
     - path: dvclive
       hash: md5
-      md5: ea720d87ecab01172151f1bc8760a7ec.dir
-      size: 536
+      md5: 966e22cb47450997729306b38912d385.dir
+      size: 540
       nfiles: 10
   visualize:
     cmd: python .\src\visualization\visualize.py \processed\train_data.csv \processed\test_data.csv
@@ -111,20 +111,20 @@ stages:
     deps:
     - path: .\data\processed\
       hash: md5
-      md5: 15dc05e8eaad92d7710b4d20e988fa64.dir
+      md5: 7155b22db623226c51646d9b12ef3516.dir
       size: 502873708
       nfiles: 5
     - path: .\models\trained_models\
       hash: md5
-      md5: a506f6f2e5637ade08ffe2c645f08333.dir
-      size: 25833826
+      md5: 87d743d81ee4cc301e8430516f731912.dir
+      size: 18542619
       nfiles: 1
     - path: .\reports\figures\
       hash: md5
-      md5: 103b2114a0642098cbacc2b60ab297c7.dir
-      size: 69762
+      md5: 816e6a49818890690746049c10bc054b.dir
+      size: 68160
       nfiles: 5
     - path: .\src\visualization\visualize.py
       hash: md5
-      md5: d84fed5d7ea0e319cb4dd9c159eaad65
-      size: 8573
+      md5: e97b81968190216c2b4973e802f3d9b3
+      size: 9090
