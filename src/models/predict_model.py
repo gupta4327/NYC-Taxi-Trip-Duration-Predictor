@@ -36,7 +36,7 @@ class TripDurationPredictor:
         self.buildfeatures()
         self.model_load()
         pred = self.model.predict(self.df)
-        return pred[0]
+        return pred
     
 if __name__ == "__main__":
 

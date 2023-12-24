@@ -1,6 +1,5 @@
 # Import necessary libraries and modules
 import click
-import logging
 from pathlib import Path
 import pandas as pd
 import yaml

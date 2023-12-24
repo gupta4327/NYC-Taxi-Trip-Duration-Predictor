@@ -1,0 +1,41 @@
+# .github/workflows/ci_cd.yml
+
+name: CI Pipeline
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+    with:
+      python-version: 3.10.8
+    - uses: iterative/setup-cml@v2
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run main test
+      run: |
+        python test.py
+        
+    -name: Create CML report
+     env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     run: |
+
+        echo "# Report on Scoring metrics of model" >> report.md
+        echo "## Bar Plot" >> report.md
+        echo '![](./metrices_bars.png "Bar plot")' >> report.md
+        cml comment create report.md
+
+
+
+
+
