@@ -20,11 +20,11 @@ class CI_test:
 
 
             s3.download_file(
-                Bucket="nyctrip-bucket", Key="test_data.csv", Filename=Path("data/interim/test_data.csv")
+                Bucket="nyctrip-bucket", Key="test_data.csv", Filename="data/interim/test_data.csv"
             )
 
             s3.download_file(
-                Bucket="nyctrip-bucket", Key="bestmodel.pkl", Filename=Path("models/bestmodel.pkl")
+                Bucket="nyctrip-bucket", Key="bestmodel.pkl", Filename="models/bestmodel.pkl"
             )
 
         except Exception as e:
