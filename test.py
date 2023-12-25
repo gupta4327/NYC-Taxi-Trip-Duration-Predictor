@@ -57,7 +57,7 @@ class CI_test:
         for col in self.x.columns:
             rec_dict[col] = list(self.x[col])
 
-        #generating predictions
+         #generating predictions
         self.y_pred = predictor.predict_duration(rec_dict)
           
     def score(self):
