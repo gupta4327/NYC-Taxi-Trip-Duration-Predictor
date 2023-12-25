@@ -36,8 +36,8 @@ class CI_test:
 
             #initialize parameters and path if connection and download of data from s3 is successful
 
-            self.read_path = Path(r'C:\Users\Aman Gupta\test\nyc_taxi_trip_duration_predictor\data\interim\test_data.csv')
-            self.model_path = Path(r'C:\Users\Aman Gupta\test\nyc_taxi_trip_duration_predictor\models\bestmodel.pkl')
+            self.read_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/data/interim/test_data.csv')
+            self.model_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/models/bestmodel.pkl')
             self.df = pd.read_csv(self.read_path)
             self.x = self.df.drop(columns=['trip_duration'])
             self.y = self.df['trip_duration']
