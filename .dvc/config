@@ -1,0 +1,4 @@
+[core]
+    remote = s3-nyctrip
+['remote "s3-nyctrip"']
+    url = s3://nyctrip-bucket
