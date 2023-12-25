@@ -1,0 +1,5 @@
+outs:
+- md5: ae288cdac0401ce67a5d5ed4367b18ab
+  size: 4022350
+  hash: md5
+  path: dropoff_kmeans.pkl

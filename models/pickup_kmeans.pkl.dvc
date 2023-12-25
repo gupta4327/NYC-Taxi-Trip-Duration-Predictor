@@ -1,0 +1,5 @@
+outs:
+- md5: b914ad924c38d0e20db8ac12db304111
+  size: 4022348
+  hash: md5
+  path: pickup_kmeans.pkl
