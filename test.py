@@ -8,7 +8,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import numpy as np
 import matplotlib.pyplot as plt
 from src.logger import infologger
-
+import os
 #class to implement CI that will run predictor on test data and saves the scoring metrics graph
 
 class CI_test:
@@ -20,11 +20,11 @@ class CI_test:
 
 
             s3.download_file(
-                Bucket="nyctrip-bucket", Key="test_data.csv", Filename="data/interim/test_data.csv"
+                Bucket="nyctrip-bucket", Key="test_data.csv", Filename=Path("data/interim/test_data.csv")
             )
 
             s3.download_file(
-                Bucket="nyctrip-bucket", Key="bestmodel.pkl", Filename="models/bestmodel.pkl"
+                Bucket="nyctrip-bucket", Key="bestmodel.pkl", Filename=Path("models/bestmodel.pkl")
             )
 
         except Exception as e:
@@ -35,9 +35,12 @@ class CI_test:
         else:
 
             #initialize parameters and path if connection and download of data from s3 is successful
-
-            self.read_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/data/interim/test_data.csv')
-            self.model_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/models/bestmodel.pkl')
+            curr_dir = Path(__file__)
+            home_dir = curr_dir.parent
+            self.read_path =os.path.join(home_dir, Path('data/interim/test_data.csv'))
+            self.model_path =os.path.join(home_dir, Path('models/bestmodel.pkl'))
+            #self.read_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/data/interim/test_data.csv')
+            #self.model_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/models/bestmodel.pkl')
             self.df = pd.read_csv(self.read_path)
             self.x = self.df.drop(columns=['trip_duration'])
             self.y = self.df['trip_duration']
