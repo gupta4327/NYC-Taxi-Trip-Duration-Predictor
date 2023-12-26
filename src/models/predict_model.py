@@ -39,7 +39,7 @@ class TripDurationPredictor:
 
     def predict_duration(self,dict):
 
-        # function that performs all other function together and returns a predicted output
+          # function that performs all other function together and returns a predicted output
         try:
             self.df = self.dict_to_df(dict)
             self.buildfeatures()
