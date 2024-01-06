@@ -1,14 +1,14 @@
 #importing necessary libraries
-from src.models.predict_model import TripDurationPredictor
-from src.models.train_model import model_eval
+from src.features.build_features import BuildFeatures
 import boto3  # pip install boto3
 import pandas as pd
-from pathlib import Path
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import numpy as np
 import matplotlib.pyplot as plt
 from src.logger import infologger
-import os
+import pickle
+import yaml
+
 #class to implement CI that will run predictor on test data and saves the scoring metrics graph
 
 class CI_test:
@@ -20,11 +20,15 @@ class CI_test:
 
 
             s3.download_file(
-                Bucket="nyctrip-bucket", Key="test_data.csv", Filename=Path("data/interim/test_data.csv")
+                Bucket="nyctrip-bucket", Key="validate_data.csv", Filename="validate_data.csv"
             )
 
             s3.download_file(
-                Bucket="nyctrip-bucket", Key="bestmodel.pkl", Filename=Path("models/bestmodel.pkl")
+                Bucket="nyctrip-bucket", Key="test_bestmodel.pkl", Filename="test_bestmodel.pkl"
+            )
+
+            s3.download_file(
+                Bucket="nyctrip-bucket", Key="loc_kmeans.pkl", Filename="loc_kmeans.pkl"
             )
 
         except Exception as e:
@@ -35,30 +39,26 @@ class CI_test:
         else:
 
             #initialize parameters and path if connection and download of data from s3 is successful
-            curr_dir = Path(__file__)
-            home_dir = curr_dir.parent
-            self.read_path =os.path.join(home_dir, Path('data/interim/test_data.csv'))
-            self.model_path =os.path.join(home_dir, Path('models/bestmodel.pkl'))
-            #self.read_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/data/interim/test_data.csv')
-            #self.model_path = Path('C:/Users/Aman Gupta/test/nyc_taxi_trip_duration_predictor/models/bestmodel.pkl')
-            self.df = pd.read_csv(self.read_path)
-            self.x = self.df.drop(columns=['trip_duration'])
-            self.y = self.df['trip_duration']
+            self.df = pd.read_csv("validate_data.csv")
+            
 
-    def predict(self):    
+    def predict(self):  
+
+        #building a features for prediction on validate data 
+        feat = BuildFeatures()
+        self.df = feat.build(self.df, 'loc_kmeans.pkl') 
+        features = yaml.safe_load(open('params.yaml'))['train_model']['features']
+        self.df = self.df[features]
+
+        #seperating input and output data 
+        self.x = self.df.drop(columns=['trip_duration'])
+        self.y = self.df['trip_duration']
         
         #initializing a object of predictor class
-        predictor = TripDurationPredictor()
+        predictor = pickle.load(open('test_bestmodel.pkl', 'rb'))
         
-        #initializing a empty dictionary to get a dictionary of input vars
-        rec_dict = {}
-
-        #populating dictionary with input data 
-        for col in self.x.columns:
-            rec_dict[col] = list(self.x[col])
-
          #generating predictions
-        self.y_pred = predictor.predict_duration(rec_dict)
+        self.y_pred = predictor.predict(self.x)
           
     def score(self):
 
@@ -96,7 +96,7 @@ class CI_test:
             ax.set_xlabel('Metrices')
             ax.set_title('Different Scoring Metrices for model')
             plt.xticks(rotation = 'vertical')
-            plt.savefig('metrices_bars.png', bbox_inches='tight')
+            plt.savefig('metrices_bars.png')
 
 
         except Exception as e:

@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import yaml
 import click
-import logging
 from sklearn.cluster import KMeans
 import haversine as hs
 from haversine import Unit
@@ -86,55 +85,18 @@ class BuildFeatures:
             # Log if created successfully
             infologger.info('Day Phase feature created successfully')
 
-    def loc_cluster_creation(self, k, seed, home_dir):
-        
-        '''This function clusters the pickup and dropoff locations into K different clusters'''
-        
-        # Building kmeans cluster and clustering both pickup and dropoff into K different clusters
-        pickup_coordinates = self.df[['pickup_latitude', 'pickup_longitude']]
-        dropoff_coordinates = self.df[['dropoff_latitude', 'dropoff_longitude']]
-        n_clusters = k
-        
-        try:
-            # Clustering and labeling on pickup data
-            pickup_kmeans = KMeans(n_clusters=n_clusters, random_state=seed, n_init=10)
-            self.df['pickup_cluster_label'] = pickup_kmeans.fit_predict(pickup_coordinates)
 
-            # Clustering and labeling on dropoff data
-            dropoff_kmeans = KMeans(n_clusters=n_clusters, random_state=seed, n_init=10)
-            self.df['dropoff_cluster_label'] = dropoff_kmeans.fit_predict(dropoff_coordinates)
-
-            # Dumping kmeans model
-            pickupmodel = '/models/pickup_kmeans.pkl'
-            pickle.dump(pickup_kmeans, open(Path(str(home_dir) + pickupmodel), 'wb'))
-            dropoffmodel = '/models/dropoff_kmeans.pkl'
-            pickle.dump(dropoff_kmeans, open(Path(str(home_dir) + dropoffmodel), 'wb'))
-        
-        except Exception as e:
-            # Log if feature creation is errored out
-            infologger.info(f'Dropoff or Pickup cluster feature creation failed with the error: {e}')
-        
-        else:
-            # Log if created successfully
-            infologger.info('Pickup and Dropoff cluster label feature created successfully')
-
-    def cluster_assign(self,home_dir):
+    def cluster_assign(self,loc_model):
         
         # assiging a pickup and dropoff geopositions a clusters
-        pickup_coordinates = self.df[['pickup_latitude', 'pickup_longitude']]
-        dropoff_coordinates = self.df[['dropoff_latitude', 'dropoff_longitude']]
+        pickup_coordinates = self.df[['pickup_latitude', 'pickup_longitude']].to_numpy()
+        dropoff_coordinates = self.df[['dropoff_latitude', 'dropoff_longitude']].to_numpy()
         
-        #loading a pickup model
-        pickupmodel = '/models/pickup_kmeans.pkl'
-        pickup_kmeans = pickle.load(open(Path(str(home_dir) + pickupmodel), 'rb'))
-        
-        #loading a dropoff model 
-        dropoffmodel = '/models/dropoff_kmeans.pkl'
-        dropoff_kmeans = pickle.load(open(Path(str(home_dir) + dropoffmodel), 'rb'))
+        loc_kmeans = pickle.load(open(Path(str(loc_model)), 'rb'))
         
         #assiging cluster to each geolocation
-        self.df['pickup_cluster_label'] = pickup_kmeans.predict(pickup_coordinates)
-        self.df['dropoff_cluster_label'] = dropoff_kmeans.predict(dropoff_coordinates)
+        self.df['pickup_cluster_label'] = loc_kmeans.predict(pickup_coordinates)
+        self.df['dropoff_cluster_label'] = loc_kmeans.predict(dropoff_coordinates)
 
     
     def distance_calculator(self, x):
@@ -181,36 +143,25 @@ class BuildFeatures:
             # Log if writing is successful
             infologger.info('Write performed successfully')
 
-    def fit(self, read_path,k,seed,write_path, home_dir ):
+
+
+    def fit(self,read_path,write_path,locmodel):
         
-        '''This function needs to be run for training data as it runs all the functions sequentially to perform an desired action'''
+        '''This function needs to be run on data as it runs all the functions sequentially to perform an desired action'''
         
         self.read_data(read_path)
         self.date_related_features()
         self.dayphase_feature()
         self.distance_feature()
-        self.loc_cluster_creation(k,seed,home_dir)
+        self.cluster_assign(locmodel)
         self.write_data(read_path, write_path)
 
-    def transform(self,read_path,write_path,home_dir):
-        
-        '''This function needs to be run on test and predicting data as it runs all the functions sequentially to perform an desired action'''
-        
-        self.read_data(read_path)
-        self.date_related_features()
-        self.dayphase_feature()
-        self.distance_feature()
-        self.cluster_assign(home_dir)
-        self.write_data(read_path, write_path)
-
-    def build(self,df):
+    def build(self,df,locmodel):
         self.df = df
-        curr_dir = Path(__file__)
-        home_dir = curr_dir.parent.parent.parent
         self.date_related_features()
         self.dayphase_feature()
         self.distance_feature()
-        self.cluster_assign(home_dir)
+        self.cluster_assign(locmodel)
         return self.df
 
 
@@ -218,7 +169,9 @@ class BuildFeatures:
 @click.command()
 @click.argument('input_filepath', type=click.Path())
 @click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
+@click.argument('modelpath', type= click.Path())
+def main(input_filepath, output_filepath, model_filepath):
+    
     """ Runs feature building script to turn train and test data from given input path
         (default is ../interim) into new data with added features and stores it into given
         output path(default is ../processed).
@@ -228,27 +181,15 @@ def main(input_filepath, output_filepath):
     home_dir = curr_dir.parent.parent.parent
     data_dir = Path(home_dir.as_posix() + '/data')
     input_path = Path(data_dir.as_posix() + input_filepath)
-    
-    # if output path is not given
-    if output_filepath != str(None):
-        output_path = Path(data_dir.as_posix() + output_filepath)
-    else:
-        output_path = None
-    
-    #loading parameters needed in script from params.yaml file 
-    params_path = Path(home_dir.as_posix() + '/params.yaml')
-    params = yaml.safe_load(open(params_path))['build_features']
+    output_path = Path(data_dir.as_posix() + output_filepath)
+    locmodel_path = Path(data_dir.as_posix() + model_filepath)
 
     #initiating a class object 
     feat = BuildFeatures()
    
-    #if data is training data then run fit function to create pickup and dropoff model 
-    if 'train' in input_filepath:
-        feat.fit(input_path, params['K'], params['seed'], output_path, home_dir)
+    #fiting function to transform data 
+    feat.fit(input_path, output_path, locmodel_path)
     
-    #else run transform function
-    else:
-        feat.transform(input_path,output_path, home_dir)
 
 if __name__ == "__main__":
     main()

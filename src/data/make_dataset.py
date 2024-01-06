@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
+import random
 from src.logger import infologger
 
 # Log information about the script starting
@@ -12,10 +13,9 @@ infologger.info('Basic cleaning and Splitting into train test data from the whol
 # Class for creating train and test datasets
 class TrainTestCreation:
 
-    def __init__(self, read_path, params, write_path=None):
+    def __init__(self, params):
         # Initialize class variables with provided parameters
-        self.read_path = read_path 
-        self.write_path = write_path 
+
         self.test_per = params['test_per']
         self.seed = params['seed']
         self.trip_duration_lowlimit = params['trip_duration_lowlimit']
@@ -30,13 +30,13 @@ class TrainTestCreation:
         self.dropoff_longitude_uplimit = params['dropoff_longitude_uplimit']
 
         # Log information about the parameters passed to the class
-        infologger.info(f'Call to make_dataset with the parameters: Data Read Path: {self.read_path}, Data write path: {self.write_path}, Test Percentage: {self.test_per}, and seed value: {self.seed}')
+        infologger.info(f'Call to make_dataset with the parameters: Test Percentage: {self.test_per}, and seed value: {self.seed}')
         
-    def read_data(self):
+    def read_data(self, read_path):
         '''This function reads data from input path and stores it into a dataframe'''
         try:
             # Read data from the provided CSV file
-            self.df = pd.read_csv(self.read_path)
+            self.df = pd.read_csv(read_path)
         except Exception as e:
             # Log if reading fails
             infologger.info(f'Reading failed with error: {e}')
@@ -81,13 +81,19 @@ class TrainTestCreation:
             #log if outlier removal is successful
             infologger.info(f'Outlier removal performed successfully')
 
-    def split_traintest(self):
+    def split_traintestvalidate(self):
 
         '''This function splits the whole data into train test as per the test percent provided'''
 
         try:
             # Split the data into training and testing sets
             self.train_data, self.test_data = train_test_split(self.df, random_state=self.seed,test_size=self.test_per)
+            idx_list = list(self.test_data.index)
+            test_idx = random.sample(idx_list, len(idx_list)//2)
+            val_idx = list(set(idx_list)- set(test_idx))
+            self.validate_data = self.test_data.loc[val_idx]
+            self.test_data = self.test_data.loc[test_idx]
+
         except Exception as e:
             # Log if splitting fails
             infologger.info(f'Splitting failed with error: {e}')
@@ -95,29 +101,38 @@ class TrainTestCreation:
             # Log if splitting is successful
             infologger.info('Split performed successfully')
 
-    def write_data(self):
+    def write_data(self,write_path):
 
         '''This function writes the data into destination folder'''
         try:
             # Write the training and testing sets to CSV files
-            self.train_data.to_csv(Path(str(self.write_path) + '/train_data.csv'),index=False)
-            self.test_data.to_csv(Path(str(self.write_path) + '/test_data.csv'),index=False)
+            self.train_data.to_csv(Path(str(write_path) + '/train_data.csv'),index=False)
+            self.test_data.to_csv(Path(str(write_path) + '/test_data.csv'),index=False)
+            self.validate_data.to_csv(Path(str(write_path) + '/validate_data.csv'),index=False)
+
         except Exception as e:
             # Log if writing fails
             infologger.info(f'Writing data failed with error: {e}')
+        
         else:
             # Log if writing is successful
             infologger.info('Write performed successfully')
 
-    def fit(self):
-        self.read_data()
+    def fit(self,read_path, write_path):
+
+        self.read_data(read_path)
         self.date_type_conversion()
         self.outlier_removal()
-        self.split_traintest()
-        if self.write_path !=None:
-            self.write_data()
-
-        return (self.train_data, self.test_data)
+        self.split_traintestvalidate()
+        self.write_data(write_path)
+   
+    
+    def transform(self, df):
+        self.df = df 
+        self.date_type_conversion()
+        self.outlier_removal()
+        self.split_traintestvalidate()
+        return (self.train_data, self.test_data, self.validate_data)
 
 # Command-line interface using Click
 @click.command()
@@ -137,15 +152,11 @@ def main(input_filepath, output_filepath):
     params_path = Path(home_dir.as_posix()+'/params.yaml')
     params=yaml.safe_load(open(params_path))['make_dataset']
     
-    # Create an instance of the train_test_creation class
-    if output_filepath != 'None':
-        split_data = TrainTestCreation(input_path, params, output_path)
-
-    else:
-        split_data = TrainTestCreation(input_path, params)
+    #initiating a object of TrainTestCreation 
+    split_data = TrainTestCreation(params)
     
     # Perform the steps of reading, splitting, and writing data
-    split_data.fit()
+    split_data.fit(input_path, output_path)
 
 # Execute the main function if the script is run
 if __name__ == '__main__':

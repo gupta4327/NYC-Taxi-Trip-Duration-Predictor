@@ -6,12 +6,12 @@ from pathlib import Path
 import pickle
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error, mean_squared_log_error
 import yaml
-from dvclive import Live
 import matplotlib.pyplot as plt
 import os
 from src.models.train_model import model_eval
 from jinja2 import Template
 from src.logger import infologger
+from push_s3 import S3Push
 
 # Class for visualing scores and generating reports for different best models stored
 class VisualizeScores:
@@ -54,9 +54,8 @@ class VisualizeScores:
 
             #logging for error
             infologger.info(f'Feature function failed with error :  {e}')
-
+        
         else:
-
             #logging for succes
             infologger.info('Data with required features created successfully')
         
@@ -75,24 +74,24 @@ class VisualizeScores:
         try:
             #extracting and loading each model one by one
             for filename in os.listdir(self.modelpath):
-                
-                filepath = os.path.join(self.modelpath, filename)
-                model = pickle.load(open(filepath, 'rb'))
-                
-                # Evaluate model on training and testing data
-                train_score = model_eval(model, self.x_train, self.y_train)
-                test_score = model_eval(model, self.x_test, self.y_test)
+                if filename.endswith('pkl'):
+                    filepath = os.path.join(self.modelpath, filename)
+                    model = pickle.load(open(filepath, 'rb'))
+                    
+                    # Evaluate model on training and testing data
+                    train_score = model_eval(model, self.x_train, self.y_train)
+                    test_score = model_eval(model, self.x_test, self.y_test)
 
-                # Append scores to the metrics dictionary
-                self.metrics_dict['Model'].append(filename.split('_')[0])
-                self.metrics_dict['Train_RMSE'] = train_score['Root Mean Square Error']
-                self.metrics_dict['Train_RMSPE'] = train_score['Root Mean Square Percentage Error']
-                self.metrics_dict['Train_MAE'] = train_score['Mean Absolute Error']
-                self.metrics_dict['Train_R2SCORE'] = train_score['R2 Score']
-                self.metrics_dict['Test_RMSE'] = test_score['Root Mean Square Error']
-                self.metrics_dict['Test_RMSPE'] = test_score['Root Mean Square Percentage Error']
-                self.metrics_dict['Test_MAE'] = test_score['Mean Absolute Error']
-                self.metrics_dict['Test_R2SCORE'] = test_score['R2 Score']
+                    # Append scores to the metrics dictionary
+                    self.metrics_dict['Model'].append(filename.split('_')[0])
+                    self.metrics_dict['Train_RMSE'] = train_score['Root Mean Square Error']
+                    self.metrics_dict['Train_RMSPE'] = train_score['Root Mean Square Percentage Error']
+                    self.metrics_dict['Train_MAE'] = train_score['Mean Absolute Error']
+                    self.metrics_dict['Train_R2SCORE'] = train_score['R2 Score']
+                    self.metrics_dict['Test_RMSE'] = test_score['Root Mean Square Error']
+                    self.metrics_dict['Test_RMSPE'] = test_score['Root Mean Square Percentage Error']
+                    self.metrics_dict['Test_MAE'] = test_score['Mean Absolute Error']
+                    self.metrics_dict['Test_R2SCORE'] = test_score['R2 Score']
         
         except Exception as e:
 
@@ -116,10 +115,33 @@ class VisualizeScores:
         #extracting and loading each model one by one
         for filename in os.listdir(self.modelpath):
             if model_idx in filename:
-                filepath = os.path.join(self.modelpath, filename)
-                model = pickle.load(open(filepath, 'rb'))
-                wpath = Path(str(self.home_dir) + '/models/bestmodel.pkl')
-                pickle.dump(model,open(wpath,'wb'))
+                try:
+                    filepath = os.path.join(self.modelpath, filename)
+                    model = pickle.load(open(filepath, 'rb'))
+                    wpath = Path(str(self.home_dir) + '/models/test_bestmodel.pkl')
+                    pickle.dump(model,open(wpath,'wb'))
+
+                except Exception as e:
+                    #logging for error
+                    infologger.info(f'Model dumping failed with error  :  {e}')
+
+                else:
+                    #if model dumped successfully
+                    infologger.info('Model dumped successfully')
+
+                    try:
+                        s3 = S3Push()
+                        s3.push(wpath, 'nyctrip-bucket', 'test_bestmodel.pkl')
+
+                    except Exception as e:
+                        infologger.info(f'Failed in pushing a model to S3 :  {e}')
+
+                    else:
+
+                        infologger.info('Model pushed to S3 successfully')
+                   
+
+        #push the same bestmodel on s3
 
         # Plot and save bar charts for different scoring metrics
         ax1 = self.metrics_df[['Train_RMSE', 'Test_RMSE']].plot.bar(title='Different models train and test RMSE')

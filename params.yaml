@@ -1,5 +1,5 @@
 make_dataset:
-  test_per: 0.3
+  test_per: 0.2
   seed: 24
   trip_duration_lowlimit: 10
   trip_duration_uplimit: 30000
@@ -12,7 +12,7 @@ make_dataset:
   dropoff_longitude_lowlimit: -74.035735
   dropoff_longitude_uplimit: -73.770272
 
-build_features:
+loc_clusters:
   K: 5
   seed: 26
 
