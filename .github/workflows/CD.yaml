@@ -3,10 +3,9 @@
 name: CD Pipeline
 
 on:
-  release:
-    types:
-      - created
-      - updated
+  push:
+    tags:
+      - '*'
 
 jobs:
   build and push ecr image:

@@ -4,6 +4,10 @@ name: CI Pipeline
 
 on:
   push:
+    branches:
+      - master
+    tags:
+      - '*'
 
 jobs:
   build:
