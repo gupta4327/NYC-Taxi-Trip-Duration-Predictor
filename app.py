@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from src.models.predict_model import TripDurationPredictor
+from predictor import TripDurationPredictor
 
 
 app = Flask(__name__)
