@@ -14,3 +14,7 @@ copy requirements.txt /app/requirements.txt
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
+cmd ['python' 'app.py']
+
+
+
