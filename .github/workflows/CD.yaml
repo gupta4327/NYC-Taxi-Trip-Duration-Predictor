@@ -9,7 +9,7 @@ on:
 
 jobs:
   build and push ecr image:
-    name: Push to ECR
+    
     runs-on: ubuntu-latest
 
     steps:
