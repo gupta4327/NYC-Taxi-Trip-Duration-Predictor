@@ -34,12 +34,11 @@ jobs:
         - aws-region: ${{ secrets.AWS_REGION }}
 
       - name: install dependencies
-        needs: configure aws credentials
+        id: dependencies
         run: |
           pip install boto3
 
       - name: resource downloader
-        needs: install dependencies
         run: |
           python pull_resources.py
 
