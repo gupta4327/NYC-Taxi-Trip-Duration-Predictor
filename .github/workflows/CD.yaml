@@ -1,0 +1,71 @@
+# .github/workflows/ci.yaml
+
+name: CD Pipeline
+
+on:
+  release:
+    types:
+      - created
+      - updated
+
+jobs:
+  build and push ecr image:
+    name: Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout-code
+        uses: actions/checkout@v3
+
+      - name: python-setup
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.8   
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+        - aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        - aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        - aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: install dependencies
+        needs: configure aws credentials
+        run: |
+          pip install boto3
+
+      - name: resource downloader
+        needs: install dependencies
+        run: |
+          python pull_resources.py
+
+      - name: log-in-to-ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: build,tag and push to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_TAG: latest
+        
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+
+
+
