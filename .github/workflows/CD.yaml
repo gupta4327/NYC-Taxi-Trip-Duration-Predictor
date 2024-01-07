@@ -8,7 +8,7 @@ on:
       - '*'
 
 jobs:
-  build and push ecr image:
+  build-and-push-ecr-image:
     
     runs-on: ubuntu-latest
 
