@@ -12,9 +12,9 @@ class TripDurationPredictor:
 
         #initialising all necessary paths and parameters 
         dir_path = Path(__file__).parent
-        self.cluster = dir_path.as_posix() + '/loc_kmeans.pkl'
-        self.model_path = dir_path.as_posix()+'/bestmodel.pkl'
-        self.params_path =dir_path.as_posix()+ '/features.yaml'
+        self.cluster = Path(dir_path.as_posix() + '/loc_kmeans.pkl')
+        self.model_path = Path(dir_path.as_posix()+'/bestmodel.pkl')
+        self.params_path =Path(dir_path.as_posix()+ '/features.yaml')
         self.features = yaml.safe_load(open(self.params_path))['model']['features']
 
     def dict_to_df(self,dict):
