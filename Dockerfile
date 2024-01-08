@@ -1,20 +1,18 @@
-From python:3.10-slim
+FROM python:3.10-slim
 
 # Set the working directory to /app
 WORKDIR /app
 
-copy app.py /app/app.py
-copy bestmodel.pkl /app/bestmodel.pkl
-copy loc_kmeans.pkl /app/loc_kmenas.pkl
-copy params.yaml /app/params.yaml
-copy predictor.py /app/predictor.py
-copy ./src/features/build_features.py /app/build_features.py
-copy requirements.txt /app/requirements.txt
+COPY app.py /app/app.py
+COPY bestmodel.pkl /app/bestmodel.pkl
+COPY loc_kmeans.pkl /app/loc_kmenas.pkl  
+COPY params.yaml /app/params.yaml
+COPY predictor.py /app/predictor.py
+COPY ./src/features/build_features.py /app/build_features.py
+COPY requirements.txt /app/requirements.txt
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
-cmd ['python' 'app.py']
-
-
-
+# Corrected CMD syntax with square brackets
+CMD ["python", "app.py"]
