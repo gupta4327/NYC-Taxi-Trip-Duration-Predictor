@@ -12,9 +12,8 @@ class TripDurationPredictor:
         #initialising all necessary paths and parameters 
         self.cluster = 'loc_kmeans.pkl'
         self.model_path = 'bestmodel.pkl'
-        self.params_path = 'params.yaml'
-        self.features = yaml.safe_load(open(self.params_path))['train_model']['features']
-        self.features.remove('trip_duration')
+        self.params_path = 'features.yaml'
+        self.features = yaml.safe_load(open(self.params_path))['model']['features']
 
     def dict_to_df(self,dict):
         
