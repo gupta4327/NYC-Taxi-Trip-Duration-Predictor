@@ -10,6 +10,7 @@ COPY ./deployement/features.yaml /app/features.yaml
 COPY ./deployement/predictor.py /app/predictor.py
 COPY ./deployement/build_features.py /app/build_features.py
 COPY ./deployement/requirements.txt /app/requirements.txt
+COPY ./deployement/logger.py /app/logger.py
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
