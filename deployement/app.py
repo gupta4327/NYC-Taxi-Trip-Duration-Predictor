@@ -22,7 +22,7 @@ def predict():
     form_data['store_and_fwd_flag'] = request.form.get('store_and_fwd_flag')
     print(form_data)
     duration = TripDurationPredictor()
-    pred = duration.predict_duration(form_data)
+    pred = duration.predict_duration(form_data)[0].item()
     pred_time = round(pred/60,2)
 
     return render_template('predict.html',pred_time = pred_time)

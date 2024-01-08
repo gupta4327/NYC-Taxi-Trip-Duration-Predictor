@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Trip Duration Predictor</title>
+    <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel='stylesheet' type='text/css' href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="index">
+        <h1>Trip Duration Predictor</h1>
+
+        <form action="{{ url_for('predict') }}" method="post">
+            <input type="number" name="vendor_id" placeholder="Vendor ID" required="required"/>
+            <input type="number" name="pickup_latitude" placeholder="Pickup Latitude" required="required"/>
+            <input type="number" name="pickup_longitude" placeholder="Pickup Longitude" required="required"/>
+            <input type="number" name="dropoff_latitude" placeholder="Dropoff Latitude" required="required"/>
+            <input type="number" name="dropoff_longitude" placeholder="Dropoff Longitude" required="required"/>
+            <input type="text" name="pickup_datetime" placeholder="Pickup Datetime" required="required"/>
+            <input type="text" name="store_and_fwd_flag" placeholder="Store and Forward flag" required="required"/>
+            <button type="submit" class="btn btn-primary">Predict Duration</button>
+        </form>
+    </div>
+
+    <!-- Include Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

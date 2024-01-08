@@ -3,6 +3,7 @@ import pandas as pd
 import pickle
 from build_features import BuildFeatures
 import yaml
+from pathlib import Path
 
 #class designed to do production predictions
 class TripDurationPredictor:
@@ -10,15 +11,16 @@ class TripDurationPredictor:
     def __init__(self):
 
         #initialising all necessary paths and parameters 
-        self.cluster = 'loc_kmeans.pkl'
-        self.model_path = 'bestmodel.pkl'
-        self.params_path = 'features.yaml'
+        dir_path = Path(__file__).parent
+        self.cluster = dir_path.as_posix() + '/loc_kmeans.pkl'
+        self.model_path = dir_path.as_posix()+'/bestmodel.pkl'
+        self.params_path =dir_path.as_posix()+ '/features.yaml'
         self.features = yaml.safe_load(open(self.params_path))['model']['features']
 
     def dict_to_df(self,dict):
         
         #converting recieved input dictionary to dataframe
-        return pd.DataFrame(dict)
+        return pd.DataFrame(dict,index =[0])
 
    
     def buildfeatures(self):

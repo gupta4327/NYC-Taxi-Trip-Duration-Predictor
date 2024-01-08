@@ -11,6 +11,8 @@ COPY ./deployement/predictor.py /app/predictor.py
 COPY ./deployement/build_features.py /app/build_features.py
 COPY ./deployement/requirements.txt /app/requirements.txt
 COPY ./deployement/logger.py /app/logger.py
+COPY ./deployement/static /app/static
+COPY ./deployement/templates /app/templates
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
