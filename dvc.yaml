@@ -18,15 +18,14 @@ stages:
 
   traindata_build_features_train:
     cmd: python .\src\features\build_features.py \interim\train_data.csv \processed\
+      \models\loc_kmeans.pkl
     deps:
     - .\data\interim\
     - .\src\features\build_features.py
-    params:
-    - build_features.K
-    - build_features.seed
 
   testdata_build_features:
     cmd: python .\src\features\build_features.py \interim\test_data.csv \processed\
+      \models\loc_kmeans.pkl
     deps:
     - .\data\interim\
     - .\src\features\build_features.py

@@ -38,7 +38,7 @@ class TrainModel:
         self.output_path = output_path
         self.home_dir = home_dir
         self.hyperopt_algo = tpe.suggest
-        self.hyperopt_max_eval = 40
+        self.hyperopt_max_eval = 2
         self.trials = Trials()
 
         #logreg for logistic regression checking if model needs to be build is logistic regression

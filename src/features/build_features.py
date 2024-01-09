@@ -169,7 +169,7 @@ class BuildFeatures:
 @click.command()
 @click.argument('input_filepath', type=click.Path())
 @click.argument('output_filepath', type=click.Path())
-@click.argument('modelpath', type= click.Path())
+@click.argument('model_filepath', type= click.Path())
 def main(input_filepath, output_filepath, model_filepath):
     
     """ Runs feature building script to turn train and test data from given input path
@@ -182,7 +182,7 @@ def main(input_filepath, output_filepath, model_filepath):
     data_dir = Path(home_dir.as_posix() + '/data')
     input_path = Path(data_dir.as_posix() + input_filepath)
     output_path = Path(data_dir.as_posix() + output_filepath)
-    locmodel_path = Path(data_dir.as_posix() + model_filepath)
+    locmodel_path = Path(home_dir.as_posix() + model_filepath)
 
     #initiating a class object 
     feat = BuildFeatures()

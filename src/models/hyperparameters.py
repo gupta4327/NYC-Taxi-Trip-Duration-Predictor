@@ -18,8 +18,8 @@ hyperparameters = {
             },
     'RandomForest': 
            {
-                'n_estimators' : hp.choice('n_estimators', [50,80,120]), 
-                'max_depth': hp.choice('max_depth', [8,10,15,20,30,40 ]), 
+                'n_estimators' : hp.choice('n_estimators', [5,8,10]), 
+                'max_depth': hp.choice('max_depth', [6,8,10 ]), 
                 'max_features': hp.choice('max_features', ['sqrt', 'log2', None]),
                 'min_samples_split': scope.int(hp.uniform('min_Samples_split',200,400)),
                 'max_samples': hp.uniform('max_sample',0.4,0.8)
