@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-EXPOSE 5000
+EXPOSE 8080
 # Set the working directory to /app
 WORKDIR /app
 
