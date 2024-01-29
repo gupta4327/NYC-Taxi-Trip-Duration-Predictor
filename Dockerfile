@@ -1,11 +1,12 @@
 FROM python:3.10-slim
 
+EXPOSE 5000
 # Set the working directory to /app
 WORKDIR /app
 
 COPY ./deployement/app.py /app/app.py
 COPY bestmodel.pkl /app/bestmodel.pkl
-COPY loc_kmeans.pkl /app/loc_kmenas.pkl  
+COPY loc_kmeans.pkl /app/loc_kmeans.pkl  
 COPY ./deployement/features.yaml /app/features.yaml
 COPY ./deployement/predictor.py /app/predictor.py
 COPY ./deployement/build_features.py /app/build_features.py
