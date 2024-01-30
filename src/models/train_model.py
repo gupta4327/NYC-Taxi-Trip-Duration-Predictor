@@ -38,8 +38,9 @@ class TrainModel:
         self.output_path = output_path
         self.home_dir = home_dir
         self.hyperopt_algo = tpe.suggest
-        self.hyperopt_max_eval = 2
+        self.hyperopt_max_eval = 15
         self.trials = Trials()
+        self.scoredic_list = []
 
         #logreg for logistic regression checking if model needs to be build is logistic regression
         if model == 'LinearRegression': 
@@ -59,7 +60,7 @@ class TrainModel:
         elif model == 'GradientBoost':
             self.model_instance = GradientBoostingRegressor
         
-        elif model == 'XtremeGradietBoost':
+        elif model == 'XtremeGradientBoost':
 
             self.model_instance = XGBRegressor
 
@@ -119,6 +120,7 @@ class TrainModel:
         #a column transformer to perform ohe on passed onehot encoding fatures and passing the remaining features as it is 
         self.oh_trf = ColumnTransformer([('encode_ohe', ohe, self.onehot_encode_feat)],remainder='passthrough')
 
+    
     def objective(self,params):
 
         '''This objective functon is used as a objective function for hyperopt objective function and also for fitting models 
@@ -126,7 +128,7 @@ class TrainModel:
         
         try:
         
-            #initialising a model
+               #initialising a model
             self.model = self.model_instance(random_state=self.seed,**params)
 
             #initialising a pipeline
@@ -138,6 +140,7 @@ class TrainModel:
             #evaluating train and test score
             self.train_score = model_eval(self.pipeline, self.x_train, self.y_train)
             self.test_score = model_eval(self.pipeline, self.x_test, self.y_test)
+            self.scoredic_list.append((self.train_score, self.test_score, params))
 
         except Exception as e:
 
@@ -148,35 +151,6 @@ class TrainModel:
 
             #logging for succes
             infologger.info('Pipeline has been fitted successfully')
-
-        try:
-        
-            with Live(self.output_path,save_dvc_exp=True) as live:
-
-                #live logging hyperparameters of model
-                live.log_params(params)
-
-                #live logging all different scoring metrics of train data 
-                live.log_metric('train data/RMSE',self.train_score['Root Mean Square Error'])
-                live.log_metric('train data/RMSPE',self.train_score['Root Mean Square Percentage Error'])
-                live.log_metric('train data/MAE',self.train_score['Mean Absolute Error'])
-                live.log_metric('train data/R2_SCORE',self.train_score['R2 Score'])
-
-                #live logging all different scoring metrics of test data
-                live.log_metric('test data/RMSE',self.test_score['Root Mean Square Error'])
-                live.log_metric('test data/RMSPE',self.test_score['Root Mean Square Percentage Error'])
-                live.log_metric('test data/MAE',self.test_score['Mean Absolute Error'])
-                live.log_metric('test data/R2_SCORE',self.test_score['R2 Score'])
-    
-        except Exception as e:
-
-            #logging for error
-            infologger.info(f'Live logging has been failed with error :  {e}')
-
-        else:
-
-            #logging for succes
-            infologger.info('Logging to dvc live has been successfully done')
 
         return {'loss': self.test_score['Root Mean Square Error'], 'params':params, 'status':STATUS_OK}
 
@@ -204,6 +178,41 @@ class TrainModel:
 
             #logging for succes
             infologger.info('Hyperparameter finetunning has been successfully done')
+
+    def livelog(self):
+
+        try:
+        
+            with Live(self.output_path,save_dvc_exp=True) as live:
+
+                for train_score, test_score , params in self.scoredic_list:
+
+                    #live logging hyperparameters of model
+                    live.log_params(params)
+
+                    #live logging all different scoring metrics of train data 
+                    live.log_metric('train data/RMSE',train_score['Root Mean Square Error'])
+                    live.log_metric('train data/RMSPE',train_score['Root Mean Square Percentage Error'])
+                    live.log_metric('train data/MAE',train_score['Mean Absolute Error'])
+                    live.log_metric('train data/R2_SCORE',train_score['R2 Score'])
+
+                    #live logging all different scoring metrics of test data
+                    live.log_metric('test data/RMSE',test_score['Root Mean Square Error'])
+                    live.log_metric('test data/RMSPE',test_score['Root Mean Square Percentage Error'])
+                    live.log_metric('test data/MAE',test_score['Mean Absolute Error'])
+                    live.log_metric('test data/R2_SCORE',test_score['R2 Score'])
+                    live.next_step()
+    
+        except Exception as e:
+
+            #logging for error
+            infologger.info(f'Live logging has been failed with error :  {e}')
+
+        else:
+
+            #logging for succes
+            infologger.info('Logging to dvc live has been successfully done')
+
     
     def write_data(self):
         
@@ -253,6 +262,7 @@ class TrainModel:
         self.feature()
         self.ohe()
         self.hyperopt_finetune()
+        self.livelog()
         infologger.info(f'Best hyperparameters of the models are : {self.best_hyperparams}')
         self.write_data()
 

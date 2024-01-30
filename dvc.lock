@@ -54,8 +54,8 @@ stages:
     deps:
     - path: .\src\models\hyperparameters.py
       hash: md5
-      md5: 8c1522201133f38d444b41e02535d09f
-      size: 2552
+      md5: 87f017a36ef0696d51e3e457a84aed5d
+      size: 2012
   train_model:
     cmd: python .\src\models\train_model.py \processed\train_data.csv \processed\test_data.csv
       \models\hyperparameters.pkl
@@ -67,13 +67,13 @@ stages:
       nfiles: 5
     - path: .\models\
       hash: md5
-      md5: 9fa7522fc3c30c9b97c0c1723166a0d8.dir
-      size: 42972424
-      nfiles: 8
+      md5: eee672d671d1683f185a4b2e0b8f5044.dir
+      size: 25812555
+      nfiles: 9
     - path: .\src\models\train_model.py
       hash: md5
-      md5: a870b4c5696e0ecd2765e86bb62c8d12
-      size: 11859
+      md5: 99b2b659d32372ccfc970f47cf4115e5
+      size: 12164
     params:
       params.yaml:
         train_model.features:
@@ -90,7 +90,7 @@ stages:
         - trip_distance
         - day_phase
         - trip_duration
-        train_model.model: RandomForest
+        train_model.model: XtremeGradientBoost
         train_model.ohe_features:
         - vendor_id
         - pickup_weekday
@@ -100,8 +100,8 @@ stages:
     outs:
     - path: dvclive
       hash: md5
-      md5: d3703f9ee9b238072560a63b138f3380.dir
-      size: 538
+      md5: 91f82abc29722c992f8bc105d8586af0.dir
+      size: 1653
       nfiles: 10
   visualize:
     cmd: python .\src\visualization\visualize.py \processed\train_data.csv \processed\test_data.csv
@@ -114,13 +114,13 @@ stages:
       nfiles: 5
     - path: .\models\trained_models\
       hash: md5
-      md5: 428b3f1ea50fefb226bf0ecb8cfad32b.dir
-      size: 44671
-      nfiles: 2
+      md5: 4b665b667aa97678a75da5c596cf67c6.dir
+      size: 734854
+      nfiles: 3
     - path: .\reports\figures\
       hash: md5
-      md5: 7848c5ca0996429b2238c715894c9919.dir
-      size: 65008
+      md5: 60a168857dab903c02c09802aece6b08.dir
+      size: 72169
       nfiles: 5
     - path: .\src\visualization\visualize.py
       hash: md5
