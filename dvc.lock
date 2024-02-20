@@ -67,13 +67,13 @@ stages:
       nfiles: 5
     - path: .\models\
       hash: md5
-      md5: eee672d671d1683f185a4b2e0b8f5044.dir
-      size: 25812555
+      md5: 8d35f5ec82b77c8b48e7df49991fff3f.dir
+      size: 27052856
       nfiles: 9
     - path: .\src\models\train_model.py
       hash: md5
-      md5: 99b2b659d32372ccfc970f47cf4115e5
-      size: 12164
+      md5: 77c966b2d71c80b62b4af28e68a16cdb
+      size: 12743
     params:
       params.yaml:
         train_model.features:
@@ -100,9 +100,9 @@ stages:
     outs:
     - path: dvclive
       hash: md5
-      md5: 91f82abc29722c992f8bc105d8586af0.dir
-      size: 1653
-      nfiles: 10
+      md5: 30d1d33b53d3d4bc7bf479f29f374105.dir
+      size: 146
+      nfiles: 2
   visualize:
     cmd: python .\src\visualization\visualize.py \processed\train_data.csv \processed\test_data.csv
       \models\trained_models\ \reports\figures\
@@ -114,13 +114,13 @@ stages:
       nfiles: 5
     - path: .\models\trained_models\
       hash: md5
-      md5: 4b665b667aa97678a75da5c596cf67c6.dir
-      size: 734854
+      md5: 5f043f4b0ee8b83ae780c914cf1bdc84.dir
+      size: 1975155
       nfiles: 3
     - path: .\reports\figures\
       hash: md5
-      md5: 60a168857dab903c02c09802aece6b08.dir
-      size: 72169
+      md5: 59219b1bfb03199bfc7cd33ffc6ccaf8.dir
+      size: 73903
       nfiles: 5
     - path: .\src\visualization\visualize.py
       hash: md5

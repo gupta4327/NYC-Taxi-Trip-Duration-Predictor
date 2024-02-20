@@ -182,12 +182,14 @@ class TrainModel:
     def livelog(self):
 
         try:
-        
+
+
             with Live(self.output_path,save_dvc_exp=True) as live:
+                
 
                 for train_score, test_score , params in self.scoredic_list:
 
-                    #live logging hyperparameters of model
+                    #live logging hyperparameters of model  
                     live.log_params(params)
 
                     #live logging all different scoring metrics of train data 
@@ -200,8 +202,9 @@ class TrainModel:
                     live.log_metric('test data/RMSE',test_score['Root Mean Square Error'])
                     live.log_metric('test data/RMSPE',test_score['Root Mean Square Percentage Error'])
                     live.log_metric('test data/MAE',test_score['Mean Absolute Error'])
-                    live.log_metric('test data/R2_SCORE',test_score['R2 Score'])
-                    live.next_step()
+                    live.log_metric('test data/R2_SCORE',test_score['R2 Score']) 
+
+
     
         except Exception as e:
 
